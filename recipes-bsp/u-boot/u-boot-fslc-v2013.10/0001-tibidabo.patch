@@ -286,8 +286,8 @@ diff -Naur a/board/architech/tibidabo/Makefile b/board/architech/tibidabo/Makefi
 +#########################################################################
 diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibidabo.c
 --- a/board/architech/tibidabo/tibidabo.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/board/architech/tibidabo/tibidabo.c	2014-01-10 21:59:15.160554775 +0100
-@@ -0,0 +1,618 @@
++++ b/board/architech/tibidabo/tibidabo.c	2014-02-15 15:40:11.786227341 +0100
+@@ -0,0 +1,545 @@
 +/*
 + * Copyright (C) 2012 Freescale Semiconductor, Inc.
 + *
@@ -472,7 +472,6 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    gpio_direction_output( IMX_GPIO_NR( 6, 27 ), 0 );                           /* RGMII RD1 - P5_MODE[1] */
 +    gpio_direction_output( IMX_GPIO_NR( 6, 28 ), 0 );                           /* RGMII RD2 - P5_MODE[2] */
 +
-+    gpio_direction_output( IMX_GPIO_NR( 6, 29 ), 0 );                           /* RGMII RD3 - P5_ADDR[0] */
 +    imx_iomux_v3_setup_multiple_pads( enet_pads1, ARRAY_SIZE( enet_pads1 ) );   /* Initializing TX pads   */
 +    gpio_direction_output( IMX_GPIO_NR( 6, 24 ), 1 );                           /* RGMI RX CTL            */
 +    udelay( 10 );                                                               /* Tsu delay - Configuration data valid prior to RESETn de-asserted */
@@ -518,7 +517,7 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    swcfg               = 
 +{
 +    .name               = "FEC",
-+    .vlancfg            = MV88E61XX_VLANCFG_ROUTER,                             /* you can configure it as MV88E61XX_VLANCFG_SWITCH */
++    .vlancfg            = MV88E61XX_VLANCFG_ROUTER,                             /* you can configure it as MV88E61XX_VLANCFG_SWITCH as well */
 +    .rgmii_delay        = MV88E61XX_RGMII_DELAY_EN,
 +    .led_init           = MV88E61XX_LED_INIT_EN,
 +    .mdip               = MV88E61XX_MDIP_NOCHANGE,
@@ -539,6 +538,24 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    PAD_CTL_ODE       | PAD_CTL_SRE_FAST )
 +
 +#define PC              MUX_PAD_CTRL(I2C_PAD_CTRL)
++
++/* I2C1 (SILICA LVDS/Raspberry Pi expansion) */
++static struct i2c_pads_info
++    i2c1_pads_info      =
++{
++    .scl                =
++    {
++        .i2c_mode       = MX6_PAD_CSI0_DAT9__I2C1_SCL  | PC,
++        .gpio_mode      = MX6_PAD_CSI0_DAT9__GPIO_5_27 | PC,
++        .gp             = IMX_GPIO_NR( 5, 27 )
++    },
++    .sda                =
++    {
++        .i2c_mode       = MX6_PAD_CSI0_DAT8__I2C1_SDA  | PC,
++        .gpio_mode      = MX6_PAD_CSI0_DAT8__GPIO_5_26 | PC,
++        .gp             = IMX_GPIO_NR( 5, 26 )
++    }
++};
 +
 +/* I2C2 (PMIC and HDMI) */
 +static struct i2c_pads_info
@@ -570,27 +587,20 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    },
 +    .sda                =
 +    {
-+        .i2c_mode       = MX6_PAD_GPIO_16__I2C3_SDA  | PC,
-+        .gpio_mode      = MX6_PAD_GPIO_16__GPIO_7_11 | PC,
-+        .gp             = IMX_GPIO_NR( 7, 11 )
++        .i2c_mode       = MX6_PAD_GPIO_6__I2C3_SDA | PC,
++        .gpio_mode      = MX6_PAD_GPIO_6__GPIO_1_6 | PC,
++        .gp             = IMX_GPIO_NR( 1, 6 )
 +    }
 +};
 +
 +static void setup_tibidabo_i2cs(void)
 +{
++    setup_i2c( 0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c1_pads_info );
 +    setup_i2c( 1, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c2_pads_info );
 +    setup_i2c( 2, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c3_pads_info );
 +}
 +
 +/********************* display *********************/
-+
-+#define LVDS_BACKLIGHT_GP       IMX_GPIO_NR( 1, 18 )        /* SD1_CMD */
-+
-+static iomux_v3_cfg_t
-+    const backlight_pads[]  = 
-+{
-+    MX6_PAD_SD1_CMD__GPIO_1_18  | MUX_PAD_CTRL( NO_PAD_CTRL )
-+};
 +
 +struct display_info_t 
 +{
@@ -606,29 +616,12 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +{
 +    struct hdmi_regs
 +        *hdmi               = (struct hdmi_regs *)HDMI_ARB_BASE_ADDR;
-+    return readb( &hdmi->phy_stat0 ) & HDMI_PHY_HPD;
++    return readb(&hdmi->phy_stat0) & HDMI_DVI_STAT;
 +}
 +
 +static void enable_hdmi(struct display_info_t const *dev)
 +{
 +    imx_enable_hdmi_phy();
-+}
-+
-+static int detect_i2c(struct display_info_t const *dev)
-+{
-+    printf( "[%s]\n", __func__ );
-+    return ((0 == i2c_set_bus_num(dev->bus)) && (0 == i2c_probe(dev->addr)));
-+}
-+
-+static void enable_lvds(struct display_info_t const *dev)
-+{
-+    struct iomuxc
-+        *iomux              = (struct iomuxc *)IOMUXC_BASE_ADDR;
-+    u32
-+        reg                 = readl(&iomux->gpr[2]);
-+    reg                     |= IOMUXC_GPR2_DATA_WIDTH_CH0_24BIT;
-+    writel( reg, &iomux->gpr[2] );
-+    gpio_direction_output( LVDS_BACKLIGHT_GP, 1 );
 +}
 +
 +static struct display_info_t
@@ -657,52 +650,6 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +            .vmode          = FB_VMODE_NONINTERLACED
 +        } 
 +    },
-+    {
-+        .bus                = 2,
-+        .addr               = 0x4,
-+        .pixfmt             = IPU_PIX_FMT_LVDS666,
-+        .detect             = detect_i2c,
-+        .enable             = enable_lvds,
-+        .mode               = 
-+        {
-+            .name           = "Hannstar-XGA",
-+            .refresh        = 60,
-+            .xres           = 1024,
-+            .yres           = 768,
-+            .pixclock       = 15385,
-+            .left_margin    = 220,
-+            .right_margin   = 40,
-+            .upper_margin   = 21,
-+            .lower_margin   = 7,
-+            .hsync_len      = 60,
-+            .vsync_len      = 10,
-+            .sync           = FB_SYNC_EXT,
-+            .vmode          = FB_VMODE_NONINTERLACED
-+        }
-+    },
-+    {
-+        .bus                = 2,
-+        .addr               = 0x38,
-+        .pixfmt             = IPU_PIX_FMT_LVDS666,
-+        .detect             = detect_i2c,
-+        .enable             = enable_lvds,
-+        .mode               = 
-+        {
-+            .name           = "wsvga-lvds",
-+            .refresh        = 60,
-+            .xres           = 1024,
-+            .yres           = 600,
-+            .pixclock       = 15385,
-+            .left_margin    = 220,
-+            .right_margin   = 40,
-+            .upper_margin   = 21,
-+            .lower_margin   = 7,
-+            .hsync_len      = 60,
-+            .vsync_len      = 10,
-+            .sync           = FB_SYNC_EXT,
-+            .vmode          = FB_VMODE_NONINTERLACED
-+        }
-+    }
 +};
 +
 +int board_video_skip(void)
@@ -715,10 +662,10 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    if( !panel )
 +    {
 +        for( i = 0; i < ARRAY_SIZE( displays ); i++ )
-+        {
++        {            
 +            struct display_info_t
 +                const *dev  = displays + i;
-+            if( dev->detect( dev ) )
++            if( dev->detect && dev->detect( dev ) )
 +            {
 +                panel       = dev->mode.name;
 +                printf( "auto-detected panel %s\n", panel );
@@ -757,78 +704,58 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +    else
 +    {
 +        printf( "unsupported panel %s\n", panel );
-+        ret                 = -EINVAL;
++        return -EINVAL;
 +    }
-+    return (0 != ret);
++    return 0;
 +}
 +
 +static void setup_display(void)
 +{
-+    struct mxc_ccm_reg
++	struct mxc_ccm_reg
 +        *mxc_ccm            = (struct mxc_ccm_reg *)CCM_BASE_ADDR;
-+    struct anatop_regs
-+        *anatop             = (struct anatop_regs *)ANATOP_BASE_ADDR;
-+    struct iomuxc
++	struct iomuxc
 +        *iomux              = (struct iomuxc *)IOMUXC_BASE_ADDR;
-+    struct hdmi_regs
-+        *hdmi               = (struct hdmi_regs *)HDMI_ARB_BASE_ADDR;
-+
-+    int
++	int
 +        reg;
 +
-+    /* Turn on LDB0,IPU,IPU DI0 clocks */
-+    reg                     =  __raw_readl (&mxc_ccm->CCGR3 );
-+    reg                     |= MXC_CCM_CCGR3_IPU1_IPU_DI0_OFFSET | MXC_CCM_CCGR3_LDB_DI0_MASK;
-+    writel( reg, &mxc_ccm->CCGR3 );
++	enable_ipu_clock();
++	imx_setup_hdmi();
 +
-+    /* Turn on HDMI PHY clock */
-+    reg                     =  __raw_readl( &mxc_ccm->CCGR2 );
-+    reg                     |= MXC_CCM_CCGR2_HDMI_TX_IAHBCLK_MASK | MXC_CCM_CCGR2_HDMI_TX_ISFRCLK_MASK;
-+    writel( reg, &mxc_ccm->CCGR2 );
++	/* Turn on LDB0, LDB1, IPU,IPU DI0 clocks */
++	reg                     = __raw_readl( &mxc_ccm->CCGR3 );
++	reg                     |=  MXC_CCM_CCGR3_LDB_DI0_MASK | MXC_CCM_CCGR3_LDB_DI1_MASK;
++	writel( reg, &mxc_ccm->CCGR3 );
 +
-+    /* clear HDMI PHY reset */
-+    writeb( HDMI_MC_PHYRSTZ_DEASSERT, &hdmi->mc_phyrstz );
++	/* set LDB0, LDB1 clk select to 011/011 */
++	reg                     = readl( &mxc_ccm->cs2cdr );
++	reg                     &= ~( MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK | MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK );
++	reg                     |= ( 3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET ) | ( 3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET );
++	writel( reg, &mxc_ccm->cs2cdr );
 +
-+    /* set PFD1_FRAC to 0x13 == 455 MHz (480*18)/0x13 */
-+    writel( ANATOP_PFD_FRAC_MASK( 1 ), &anatop->pfd_480_clr );
-+    writel( 0x13 << ANATOP_PFD_FRAC_SHIFT( 1 ), &anatop->pfd_480_set );
++	reg                     = readl( &mxc_ccm->cscmr2 );
++	reg                     |= MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV | MXC_CCM_CSCMR2_LDB_DI1_IPU_DIV;
++	writel( reg, &mxc_ccm->cscmr2 );
 +
-+    /* set LDB0, LDB1 clk select to 011/011 */
-+    reg                     = readl( &mxc_ccm->cs2cdr );
-+    reg                     &= ~( MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_MASK | MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_MASK );
-+    reg                     |= ( 3 << MXC_CCM_CS2CDR_LDB_DI0_CLK_SEL_OFFSET ) | ( 3 << MXC_CCM_CS2CDR_LDB_DI1_CLK_SEL_OFFSET );
-+    writel( reg, &mxc_ccm->cs2cdr );
++	reg                     = readl( &mxc_ccm->chsccdr );
++	reg                     |= ( CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET );
++	reg                     |= ( CHSCCDR_CLK_SEL_LDB_DI0 << MXC_CCM_CHSCCDR_IPU1_DI1_CLK_SEL_OFFSET );
++	writel( reg, &mxc_ccm->chsccdr );
 +
-+    reg                     = readl( &mxc_ccm->cscmr2 );
-+    reg                     |= MXC_CCM_CSCMR2_LDB_DI0_IPU_DIV;
-+    writel( reg, &mxc_ccm->cscmr2 );
++	reg                     = IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES
++	                        | IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_LOW
++	                        | IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW
++	                        | IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG
++	                        | IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT
++	                        | IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG
++	                        | IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT
++	                        | IOMUXC_GPR2_LVDS_CH0_MODE_DISABLED
++	                        | IOMUXC_GPR2_LVDS_CH1_MODE_ENABLED_DI0;
++	writel( reg, &iomux->gpr[ 2 ] );
 +
-+    reg                     = readl( &mxc_ccm->chsccdr );
-+    reg                     &= ~( MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_MASK | MXC_CCM_CHSCCDR_IPU1_DI0_PODF_MASK | MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_MASK );
-+    reg                     |=   ( CHSCCDR_CLK_SEL_LDB_DI0      << MXC_CCM_CHSCCDR_IPU1_DI0_CLK_SEL_OFFSET     )
-+                               | ( CHSCCDR_PODF_DIVIDE_BY_3     << MXC_CCM_CHSCCDR_IPU1_DI0_PODF_OFFSET        )
-+                               | ( CHSCCDR_IPU_PRE_CLK_540M_PFD << MXC_CCM_CHSCCDR_IPU1_DI0_PRE_CLK_SEL_OFFSET );
-+    writel( reg, &mxc_ccm->chsccdr );
-+
-+    reg                     =   IOMUXC_GPR2_BGREF_RRMODE_EXTERNAL_RES
-+                              | IOMUXC_GPR2_DI1_VS_POLARITY_ACTIVE_HIGH
-+                              | IOMUXC_GPR2_DI0_VS_POLARITY_ACTIVE_LOW
-+                              | IOMUXC_GPR2_BIT_MAPPING_CH1_SPWG
-+                              | IOMUXC_GPR2_DATA_WIDTH_CH1_18BIT
-+                              | IOMUXC_GPR2_BIT_MAPPING_CH0_SPWG
-+                              | IOMUXC_GPR2_DATA_WIDTH_CH0_18BIT
-+                              | IOMUXC_GPR2_LVDS_CH1_MODE_DISABLED
-+                              | IOMUXC_GPR2_LVDS_CH0_MODE_ENABLED_DI0;
-+    writel( reg, &iomux->gpr[ 2 ] );
-+
-+    reg                     = readl( &iomux->gpr[ 3 ] );
-+    reg                     =   ( reg & ~IOMUXC_GPR3_LVDS0_MUX_CTL_MASK )
-+                              | ( IOMUXC_GPR3_MUX_SRC_IPU1_DI0 << IOMUXC_GPR3_LVDS0_MUX_CTL_OFFSET );
-+    writel( reg, &iomux->gpr[ 3] );
-+
-+    /* backlight off until needed */
-+    imx_iomux_v3_setup_multiple_pads( backlight_pads, ARRAY_SIZE( backlight_pads ) );
-+    gpio_direction_input( LVDS_BACKLIGHT_GP );
++	reg                     = readl( &iomux->gpr[ 3 ] );
++	reg                     = ( reg & ~( IOMUXC_GPR3_LVDS1_MUX_CTL_MASK | IOMUXC_GPR3_HDMI_MUX_CTL_MASK ) )
++	                        | ( IOMUXC_GPR3_MUX_SRC_IPU1_DI0 << IOMUXC_GPR3_LVDS1_MUX_CTL_OFFSET );
++	writel( reg, &iomux->gpr[ 3 ] );
 +}
 +
 +/********************* sata *********************/
@@ -864,7 +791,7 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +
 +int checkboard(void)
 +{
-+    puts("Board: Tibidabo\n");
++    puts( "Board: Tibidabo\n" );
 +    return 0;
 +}
 +
@@ -908,7 +835,7 @@ diff -Naur a/board/architech/tibidabo/tibidabo.c b/board/architech/tibidabo/tibi
 +}
 diff -Naur a/board/architech/tibidabo/tibidabo.cfg b/board/architech/tibidabo/tibidabo.cfg
 --- a/board/architech/tibidabo/tibidabo.cfg	1970-01-01 01:00:00.000000000 +0100
-+++ b/board/architech/tibidabo/tibidabo.cfg	2014-01-09 10:27:53.642592731 +0100
++++ b/board/architech/tibidabo/tibidabo.cfg	2014-01-20 11:48:52.200892309 +0100
 @@ -0,0 +1,46 @@
 +/*
 + * Copyright (C) 2013 Boundary Devices

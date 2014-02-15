@@ -1,7 +1,7 @@
 diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibidabo.c
 --- a/arch/arm/mach-mx6/board-tibidabo.c	1970-01-01 01:00:00.000000000 +0100
-+++ b/arch/arm/mach-mx6/board-tibidabo.c	2014-01-11 15:34:08.089458286 +0100
-@@ -0,0 +1,1328 @@
++++ b/arch/arm/mach-mx6/board-tibidabo.c	2014-02-15 16:39:31.069481091 +0100
+@@ -0,0 +1,1198 @@
 +/*
 + * Copyright (C) 2011-2012 Freescale Semiconductor, Inc. All Rights Reserved.
 + * 
@@ -55,10 +55,16 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +
 +/****************************** gpios ******************************/
 +
++#define DIRECTION_NULL          0
++#define DIRECTION_INPUT         1
++#define DIRECTION_OUTPUT        2
++
 +struct tibidabo_gpio_t
 +{
 +    unsigned int                gpio;
 +    char                        *label;
++    char                        direction;
++    char                        output_value;
 +    bool                        direction_may_change;
 +    iomux_v3_cfg_t              pad;
 +};
@@ -66,209 +72,20 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +static struct tibidabo_gpio_t
 +    tibidabo_gpios[]            =
 +{
-+    { /* gpio1 */
-+        .gpio                   = IMX_GPIO_NR( 1, 1 ),
-+        .label                  = "GPIO_1",
++    {
++        .gpio                   = IMX_GPIO_NR( 2, 11 ),
++        .label                  = "GPIO_2_11",
++        .direction              = DIRECTION_OUTPUT,
++        .output_value           = 1,
 +        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_GPIO_1__GPIO_1_1,
++        .pad                    = MX6Q_PAD_SD4_DAT3__GPIO_2_11,
 +    },
-+    { /* gpio7 */
-+        .gpio                   = IMX_GPIO_NR( 1, 7 ),
-+        .label                  = "GPIO_7",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_GPIO_7__GPIO_1_7,
-+    },
-+    { /* gpio8 */
-+        .gpio                   = IMX_GPIO_NR( 1, 8 ),
-+        .label                  = "GPIO_8",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_GPIO_8__GPIO_1_8,
-+    },
-+    { /* gpio16 */
-+        .gpio                   = IMX_GPIO_NR( 1, 16 ),
-+        .label                  = "SD1_DAT0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_DAT0__GPIO_1_16,
-+    },
-+    { /* gpio17 */
-+        .gpio                   = IMX_GPIO_NR( 1, 17 ),
-+        .label                  = "SD1_DAT1",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_DAT1__GPIO_1_17,
-+    },
-+    { /* gpio18 */
-+        .gpio                   = IMX_GPIO_NR( 1, 18 ),
-+        .label                  = "SD1_CMD",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_CMD__GPIO_1_18,
-+    },
-+    { /* gpio19 */
-+        .gpio                   = IMX_GPIO_NR( 1, 19 ),
-+        .label                  = "SD1_DAT2",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_DAT2__GPIO_1_19,
-+    },
-+    { /* gpio20 */
-+        .gpio                   = IMX_GPIO_NR( 1, 20 ),
-+        .label                  = "SD1_CLK",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_CLK__GPIO_1_20,
-+    },
-+    { /* gpio21 */
-+        .gpio                   = IMX_GPIO_NR( 1, 21 ),
-+        .label                  = "SD1_DAT3",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD1_DAT3__GPIO_1_21,
-+    },
-+    { /* gpio25 */
-+        .gpio                   = IMX_GPIO_NR( 1, 25 ),
-+        .label                  = "ENET_CRS_DV",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_ENET_CRS_DV__GPIO_1_25,
-+    },
-+    { /* gpio27 */
-+        .gpio                   = IMX_GPIO_NR( 1, 27 ),
-+        .label                  = "ENET_RXD0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_ENET_RXD0__GPIO_1_27,
-+    },
-+    { /* gpio33 */
-+        .gpio                   = IMX_GPIO_NR( 2, 1 ),
-+        .label                  = "NANDF_D1",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D1__GPIO_2_1,
-+    },
-+    { /* gpio34 */
-+        .gpio                   = IMX_GPIO_NR( 2, 2 ),
-+        .label                  = "NANDF_D2",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D2__GPIO_2_2,
-+    },
-+    { /* gpio35 */
++    {
 +        .gpio                   = IMX_GPIO_NR( 2, 3 ),
-+        .label                  = "NANDF_D3",
++        .label                  = "GPIO_2_3",
++        .direction              = DIRECTION_INPUT,
 +        .direction_may_change   = true,
 +        .pad                    = MX6Q_PAD_NANDF_D3__GPIO_2_3,
-+    },
-+    { /* gpio36 */
-+        .gpio                   = IMX_GPIO_NR( 2, 4 ),
-+        .label                  = "NANDF_D4",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D4__GPIO_2_4,
-+    },
-+    { /* gpio37 */
-+        .gpio                   = IMX_GPIO_NR( 2, 5 ),
-+        .label                  = "NANDF_D5",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D5__GPIO_2_5,
-+    },
-+    { /* gpio38 */
-+        .gpio                   = IMX_GPIO_NR( 2, 6 ),
-+        .label                  = "NANDF_D6",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D6__GPIO_2_6,
-+    },
-+    { /* gpio39 */
-+        .gpio                   = IMX_GPIO_NR( 2, 7 ),
-+        .label                  = "NANDF_D7",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_D7__GPIO_2_7,
-+    },
-+    { /* gpio40 */
-+        .gpio                   = IMX_GPIO_NR( 2, 8 ),
-+        .label                  = "SD4_DAT0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD4_DAT0__GPIO_2_8,
-+    },
-+    { /* gpio42 */
-+        .gpio                   = IMX_GPIO_NR( 2, 10 ),
-+        .label                  = "SD4_DAT2",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD4_DAT2__GPIO_2_10,
-+    },
-+    { /* gpio55 */
-+        .gpio                   = IMX_GPIO_NR( 2, 23 ),
-+        .label                  = "EIM_CS0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_CS0__GPIO_2_23,
-+    },
-+    { /* gpio56 */
-+        .gpio                   = IMX_GPIO_NR( 2, 24 ),
-+        .label                  = "EIM_CS1",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_CS1__GPIO_2_24,
-+    },
-+    { /* gpio57 */
-+        .gpio                   = IMX_GPIO_NR( 2, 25 ),
-+        .label                  = "EIM_OE",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_OE__GPIO_2_25,
-+    },
-+    { /* gpio58 */
-+        .gpio                   = IMX_GPIO_NR( 2, 26 ),
-+        .label                  = "EIM_RW",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_RW__GPIO_2_26,
-+    },
-+    { /* gpio63 */
-+        .gpio                   = IMX_GPIO_NR( 2, 31 ),
-+        .label                  = "EIM_EB3",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_EB3__GPIO_2_31,
-+    },
-+    { /* gpio88 */
-+        .gpio                   = IMX_GPIO_NR( 3, 24 ),
-+        .label                  = "EIM_D24",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_D24__GPIO_3_24,
-+    },
-+    { /* gpio89 */
-+        .gpio                   = IMX_GPIO_NR( 3, 25 ),
-+        .label                  = "EIM_D25",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_EIM_D25__GPIO_3_25,
-+    },
-+    { /* gpio167 */
-+        .gpio                   = IMX_GPIO_NR( 6, 7 ),
-+        .label                  = "NANDF_CLE",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_CLE__GPIO_6_7,
-+    },
-+    { /* gpio168 */
-+        .gpio                   = IMX_GPIO_NR( 6, 8 ),
-+        .label                  = "NANDF_ALE",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_ALE__GPIO_6_8,
-+    },
-+    { /* gpio169 */
-+        .gpio                   = IMX_GPIO_NR( 6, 9 ),
-+        .label                  = "NANDF_WP_B",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_WP_B__GPIO_6_9,
-+    },
-+    { /* gpio170 */
-+        .gpio                   = IMX_GPIO_NR( 6, 10 ),
-+        .label                  = "NANDF_RB0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_RB0__GPIO_6_10,
-+    },
-+    { /* gpio171 */
-+        .gpio                   = IMX_GPIO_NR( 6, 11 ),
-+        .label                  = "NANDF_CS0",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_NANDF_CS0__GPIO_6_11,
-+    },
-+    { /* gpio201 */
-+        .gpio                   = IMX_GPIO_NR( 7, 9 ),
-+        .label                  = "SD4_CMD",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD4_CMD__GPIO_7_9,
-+    },
-+    { /* gpio202 */
-+        .gpio                   = IMX_GPIO_NR( 7, 10 ),
-+        .label                  = "SD4_CLK",
-+        .direction_may_change   = true,
-+        .pad                    = MX6Q_PAD_SD4_CLK__GPIO_7_10,
 +    },
 +};
 +
@@ -281,6 +98,14 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +    {
 +        mxc_iomux_v3_setup_pad( tibidabo_gpios[ i ].pad );
 +        gpio_request( tibidabo_gpios[ i ].gpio, tibidabo_gpios[ i ].label );
++        if( tibidabo_gpios[ i ].direction == DIRECTION_INPUT )
++        {
++            gpio_direction_input( tibidabo_gpios[ i ].gpio );
++        }
++        else if( tibidabo_gpios[ i ].direction == DIRECTION_OUTPUT )
++        {
++            gpio_direction_output( tibidabo_gpios[ i ].gpio, tibidabo_gpios[ i ].output_value );
++        }
 +        gpio_export( tibidabo_gpios[ i ].gpio, tibidabo_gpios[ i ].direction_may_change );
 +    }
 +}
@@ -453,12 +278,12 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +    .bitrate                    = 100000,
 +};
 +
-+/* Expansion connector */
++/* Silica LVDS/Raspberry Pi expansion */
 +static iomux_v3_cfg_t
 +    tibidabo_i2c1_pads[]        =
 +{
-+    MX6Q_PAD_EIM_D21__I2C1_SCL,
-+    MX6Q_PAD_EIM_D28__I2C1_SDA,
++    MX6Q_PAD_CSI0_DAT9__I2C1_SCL,
++    MX6Q_PAD_CSI0_DAT8__I2C1_SDA,
 +};
 +
 +/* HDMI */
@@ -474,7 +299,7 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +    tibidabo_i2c3_pads[]        =
 +{
 +    MX6Q_PAD_GPIO_5__I2C3_SCL,
-+    MX6Q_PAD_GPIO_16__I2C3_SDA,
++    MX6Q_PAD_GPIO_6__I2C3_SDA,
 +};
 +
 +static struct i2c_board_info
@@ -488,7 +313,7 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +static void
 +tibidabo_init_i2c(void)
 +{
-+    mxc_iomux_v3_setup_multiple_pads( tibidabo_i2c3_pads, ARRAY_SIZE( tibidabo_i2c1_pads ) );
++    mxc_iomux_v3_setup_multiple_pads( tibidabo_i2c1_pads, ARRAY_SIZE( tibidabo_i2c1_pads ) );
 +    mxc_iomux_v3_setup_multiple_pads( tibidabo_i2c2_pads, ARRAY_SIZE( tibidabo_i2c2_pads ) );
 +    mxc_iomux_v3_setup_multiple_pads( tibidabo_i2c3_pads, ARRAY_SIZE( tibidabo_i2c3_pads ) );
 +
@@ -679,14 +504,14 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +/****************************** ethernet ******************************/
 +
 +static iomux_v3_cfg_t
-+    tibidabo_mdio_pads[]                        =
++    tibidabo_mdio_pads[]            =
 +{
 +    MX6Q_PAD_ENET_MDIO__ENET_MDIO,
 +    MX6Q_PAD_ENET_MDC__ENET_MDC,
 +};
 +
 +static iomux_v3_cfg_t
-+    tibidabo_fec_pads[]                         =
++    tibidabo_fec_pads[]             =
 +{
 +    MX6Q_PAD_RGMII_TXC__ENET_RGMII_TXC,
 +    MX6Q_PAD_RGMII_TD0__ENET_RGMII_TD0,
@@ -994,6 +819,18 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +
 +/****************************** video ******************************/
 +
++struct imx_vout_mem
++{
++	resource_size_t             res_mbase;
++	resource_size_t             res_msize;
++};
++
++static struct imx_vout_mem
++    vout_mem __initdata         =
++{
++	.res_msize                  = SZ_128M,
++};
++
 +static struct fsl_mxc_hdmi_core_platform_data
 +    hdmi_core_data              =
 +{
@@ -1161,27 +998,53 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +{
 +    int
 +        i;
++    struct platform_device
++        *voutdev;
 +    imx6q_add_mxc_hdmi_core( &hdmi_core_data );
 +
-+    imx6q_add_ipuv3( 0, &ipu_data[ 0 ] );                   /* image processing unit v3 (ipuv3) */
++    imx6q_add_ipuv3( 0, &ipu_data[ 0 ] );                       /* image processing unit v3 (ipuv3) */
 +    imx6q_add_ipuv3( 1, &ipu_data[ 1 ] );
 +    for( i = 0; i < ARRAY_SIZE( tibidabo_fb_data ); i++ )
 +    {
 +        imx6q_add_ipuv3fb( i, &tibidabo_fb_data[ i ] );
 +    }
 +
-+    imx6q_add_vdoa();                                       /* video data order adapter */
++    imx6q_add_vdoa();                                           /* video data order adapter */
 +    imx6q_add_lcdif( &lcdif_data );
 +    imx6q_add_ldb( &ldb_data );
-+    imx6q_add_v4l2_output( 0 );                             /* video for linux */
++    voutdev                     = imx6q_add_v4l2_output( 0 );   /* video for linux */
++ 	if( vout_mem.res_msize && voutdev )
++    {
++		dma_declare_coherent_memory(    &voutdev->dev,
++					                    vout_mem.res_mbase,
++					                    vout_mem.res_mbase,
++					                    vout_mem.res_msize,
++                                        ( DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE ) );
++	}   
 +    imx6q_add_v4l2_capture( 0, &capture_data[ 0 ] );        
 +    imx6q_add_v4l2_capture( 1, &capture_data[ 1 ] );        
-+    imx6q_add_mipi_csi2( &mipi_csi2_pdata );                /* Mobile Industry Processor Interface */
++    imx6q_add_mipi_csi2( &mipi_csi2_pdata );                    /* Mobile Industry Processor Interface */
 +    imx6q_add_mxc_hdmi( &hdmi_data );
 +    imx_add_viv_gpu( &imx6_gpu_data, &imx6q_gpu_pdata );
-+    imx6q_add_vpu();                                        /* Video Processing Unit */
++    imx6q_add_vpu();                                            /* Video Processing Unit */
 +	imx6q_add_hdmi_soc();
 +	imx6q_add_hdmi_soc_dai();
++}
++
++/****************************** asrc ******************************/
++
++static struct imx_asrc_platform_data
++    imx_asrc_data                   =
++{
++	.channel_bits                   = 4,
++	.clk_map_ver                    = 2,
++};
++
++static void tibidabo_init_asrc(void)
++{
++	imx_asrc_data.asrc_core_clk     = clk_get( NULL, "asrc_clk" );
++	imx_asrc_data.asrc_audio_clk    = clk_get( NULL, "asrc_serial_clk" );
++	imx6q_add_asrc( &imx_asrc_data );
 +}
 +
 +/****************************** pcie ******************************/
@@ -1288,6 +1151,12 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +        imx6q_gpu_pdata.reserved_mem_base           = phys;
 +    }
 +    #endif
++ 	if( vout_mem.res_msize )
++    {
++		phys                                        = memblock_alloc_base( vout_mem.res_msize, SZ_4K, SZ_1G );
++		memblock_remove( phys, vout_mem.res_msize );
++		vout_mem.res_mbase                          = phys;
++	}   
 +}
 +
 +static void __init init_machine_tibidabo(void)
@@ -1313,6 +1182,7 @@ diff -Naur a/arch/arm/mach-mx6/board-tibidabo.c b/arch/arm/mach-mx6/board-tibida
 +    imx6q_add_busfreq();
 +    tibidabo_init_perfmon();
 +    tibidabo_init_video_and_graphics();
++    tibidabo_init_asrc();
 +    tibidabo_init_pcie();
 +    tibidabo_init_gpios();
 +    tibidabo_init_vmmc();
@@ -2477,7 +2347,7 @@ diff -Naur a/drivers/mtd/devices/n25q.c b/drivers/mtd/devices/n25q.c
 +MODULE_DESCRIPTION( "MTD SPI driver for Micron N25Q flash chips" );
 diff -Naur a/drivers/net/fec.c b/drivers/net/fec.c
 --- a/drivers/net/fec.c	2014-01-09 09:27:51.365097458 +0100
-+++ b/drivers/net/fec.c	2014-01-09 22:45:00.047649850 +0100
++++ b/drivers/net/fec.c	2014-02-04 17:41:22.046754419 +0100
 @@ -49,6 +49,7 @@
  #include <linux/fec.h>
  
@@ -2586,7 +2456,7 @@ diff -Naur a/drivers/video/mxc/ldb.c b/drivers/video/mxc/ldb.c
  
 diff -Naur a/include/linux/if_ether.h b/include/linux/if_ether.h
 --- a/include/linux/if_ether.h	2014-01-09 09:24:10.063879591 +0100
-+++ b/include/linux/if_ether.h	2014-01-09 21:26:40.806727309 +0100
++++ b/include/linux/if_ether.h	2014-02-04 17:42:09.402159081 +0100
 @@ -31,7 +31,11 @@
  #define ETH_ALEN	6		/* Octets in one ethernet addr	 */
  #define ETH_HLEN	14		/* Total octets in header.	 */
