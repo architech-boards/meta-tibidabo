@@ -1,0 +1,16 @@
+OpenEmbedded/Yocto BSP layer for ArchiTech's Tibidabo board
+===========================================================
+
+This layer provides support for ArchiTech's Tibidabo for
+use with OpenEmbedded and/or Yocto.
+
+This layer depends on:
+
+URI: git://git.openembedded.org/openembedded-core.git
+branch: dora
+
+URI: git://git.openembedded.org/meta-openembedded.git
+branch: dora
+
+URI: git://git.yoctoproject.org/meta-fsl-arm.git
+branch: dora
