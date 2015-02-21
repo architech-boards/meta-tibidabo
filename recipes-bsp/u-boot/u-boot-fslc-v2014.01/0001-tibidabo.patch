@@ -1,6 +1,6 @@
 diff -Naur u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg modificato-u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg
 --- u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg	2015-02-03 17:00:46.059786300 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,60 @@
 +/*
 + * Copyright (C) 2013 Boundary Devices
@@ -64,7 +64,7 @@ diff -Naur u-boot-imx/board/architech/tibidabo/1066mhz_4x256mx16.cfg modificato-
 +DATA 4, MX6_MMDC_P0_MAPSR,       0x00011006
 diff -Naur u-boot-imx/board/architech/tibidabo/clocks.cfg modificato-u-boot-imx/board/architech/tibidabo/clocks.cfg
 --- u-boot-imx/board/architech/tibidabo/clocks.cfg	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/clocks.cfg	2015-02-03 17:00:46.115785596 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/clocks.cfg	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,59 @@
 +/*
 + * Copyright (C) 2013 Boundary Devices
@@ -127,7 +127,7 @@ diff -Naur u-boot-imx/board/architech/tibidabo/clocks.cfg modificato-u-boot-imx/
 +DATA 4, CCM_CCOSR, 0x000000fb
 diff -Naur u-boot-imx/board/architech/tibidabo/ddr-setup.cfg modificato-u-boot-imx/board/architech/tibidabo/ddr-setup.cfg
 --- u-boot-imx/board/architech/tibidabo/ddr-setup.cfg	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/ddr-setup.cfg	2015-02-03 17:00:46.115785596 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/ddr-setup.cfg	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,110 @@
 +/*
 + * Copyright (C) 2013 Boundary Devices
@@ -241,7 +241,7 @@ diff -Naur u-boot-imx/board/architech/tibidabo/ddr-setup.cfg modificato-u-boot-i
 +DATA 4, MX6_MMDC_P0_MDSCR, 0x00008000
 diff -Naur u-boot-imx/board/architech/tibidabo/Makefile modificato-u-boot-imx/board/architech/tibidabo/Makefile
 --- u-boot-imx/board/architech/tibidabo/Makefile	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/Makefile	2015-02-03 18:19:12.196624156 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/Makefile	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,10 @@
 +#
 +# Copyright (C) 2007, Guennadi Liakhovetski <lg@denx.de>
@@ -255,7 +255,7 @@ diff -Naur u-boot-imx/board/architech/tibidabo/Makefile modificato-u-boot-imx/bo
 +
 diff -Naur u-boot-imx/board/architech/tibidabo/tibidabo.c modificato-u-boot-imx/board/architech/tibidabo/tibidabo.c
 --- u-boot-imx/board/architech/tibidabo/tibidabo.c	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/tibidabo.c	2015-02-04 17:42:29.644024349 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/tibidabo.c	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,610 @@
 +/*
 + * Copyright (C) 2012 Freescale Semiconductor, Inc.
@@ -869,7 +869,7 @@ diff -Naur u-boot-imx/board/architech/tibidabo/tibidabo.c modificato-u-boot-imx/
 +}
 diff -Naur u-boot-imx/board/architech/tibidabo/tibidabo.cfg modificato-u-boot-imx/board/architech/tibidabo/tibidabo.cfg
 --- u-boot-imx/board/architech/tibidabo/tibidabo.cfg	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/board/architech/tibidabo/tibidabo.cfg	2015-02-04 11:52:21.804128663 +0100
++++ modificato-u-boot-imx/board/architech/tibidabo/tibidabo.cfg	2015-02-21 10:37:32.011570077 +0100
 @@ -0,0 +1,46 @@
 +/*
 + * Copyright (C) 2013 Boundary Devices
@@ -918,16 +918,16 @@ diff -Naur u-boot-imx/board/architech/tibidabo/tibidabo.cfg modificato-u-boot-im
 +#include "1066mhz_4x256mx16.cfg"
 +#include "clocks.cfg"
 diff -Naur u-boot-imx/boards.cfg modificato-u-boot-imx/boards.cfg
---- u-boot-imx/boards.cfg	2015-02-06 14:54:59.641155753 +0100
-+++ modificato-u-boot-imx/boards.cfg	2015-02-03 16:55:38.775649254 +0100
+--- u-boot-imx/boards.cfg	2015-02-21 10:27:16.000000000 +0100
++++ modificato-u-boot-imx/boards.cfg	2015-02-21 10:37:32.011570077 +0100
 @@ -1246,3 +1246,4 @@
  Orphan  powerpc     mpc8xx         -           -               mbx8xx              MBX                                  -                                                                                                                                 -
  Orphan  powerpc     mpc8xx         -           -               mbx8xx              MBX860T                              -                                                                                                                                 -
  Orphan  powerpc     mpc8xx         -           -               nx823               NX823                                -                                                                                                                                 -
 +Active  arm         armv7          mx6         architech       tibidabo            tibidabo                             tibidabo:IMX_CONFIG=board/architech/tibidabo/tibidabo.cfg,MX6Q,DDR_MB=2048                                                        Alessandro Ratti <alessandro.ratti@silica.com>
 diff -Naur u-boot-imx/drivers/net/phy/mv88e61xx.c modificato-u-boot-imx/drivers/net/phy/mv88e61xx.c
---- u-boot-imx/drivers/net/phy/mv88e61xx.c	2015-02-06 14:54:59.757155749 +0100
-+++ modificato-u-boot-imx/drivers/net/phy/mv88e61xx.c	2015-02-03 16:41:35.374251886 +0100
+--- u-boot-imx/drivers/net/phy/mv88e61xx.c	2015-02-21 10:27:17.000000000 +0100
++++ modificato-u-boot-imx/drivers/net/phy/mv88e61xx.c	2015-02-21 10:37:32.011570077 +0100
 @@ -415,8 +415,10 @@
  				return -1;
  			if (mv88361xx_reverse_mdipn(swconfig, phy))
@@ -939,9 +939,35 @@ diff -Naur u-boot-imx/drivers/net/phy/mv88e61xx.c modificato-u-boot-imx/drivers/
  		}
  
  		/* set port VID to port+1 except for cpu port */
+diff -Naur u-boot-imx/examples/standalone/Makefile modificato-u-boot-imx/examples/standalone/Makefile
+--- u-boot-imx/examples/standalone/Makefile	2015-02-21 10:27:17.000000000 +0100
++++ modificato-u-boot-imx/examples/standalone/Makefile	2015-02-21 10:43:02.203575528 +0100
+@@ -63,6 +63,13 @@
+ CFLAGS_NTR := $(call cc-option,-fno-toplevel-reorder)
+ CFLAGS += $(CFLAGS_NTR)
+ 
++ifdef USE_PRIVATE_LIBGCC
++ifeq ("$(USE_PRIVATE_LIBGCC)", "yes")
++else
++PLATFORM_LIBGCC = -lgcc
++endif
++endif
++
+ all:	$(obj).depend $(OBJS) $(LIB) $(SREC) $(BIN) $(ELF)
+ 
+ #########################################################################
+@@ -73,7 +80,7 @@
+ $(obj)%:	$(obj)%.o $(LIB)
+ 		$(LD) $(LDFLAGS) -g -Ttext $(CONFIG_STANDALONE_LOAD_ADDR) \
+ 			-o $@ -e $(SYM_PREFIX)$(notdir $(<:.o=)) $< $(LIB) \
+-			-L$(gcclibdir) -lgcc
++			-L$(gcclibdir) $(PLATFORM_LIBGCC)
+ 
+ $(SREC):
+ $(obj)%.srec:	$(obj)%
 diff -Naur u-boot-imx/include/configs/tibidabo.h modificato-u-boot-imx/include/configs/tibidabo.h
 --- u-boot-imx/include/configs/tibidabo.h	1970-01-01 01:00:00.000000000 +0100
-+++ modificato-u-boot-imx/include/configs/tibidabo.h	2015-02-04 17:55:59.273845924 +0100
++++ modificato-u-boot-imx/include/configs/tibidabo.h	2015-02-21 10:37:32.015570077 +0100
 @@ -0,0 +1,284 @@
 +/*
 + * Copyright (C) 2012 Freescale Semiconductor, Inc.
